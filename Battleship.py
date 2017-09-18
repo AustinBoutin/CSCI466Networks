@@ -1,5 +1,6 @@
 import sys
 from tkinter import *
+from Fleet import Fleet
 
 class Battleship:
 
@@ -12,26 +13,46 @@ class Battleship:
             'D' : '#2226F9'
             }.get(tile, "#FFF")
 
+    def color_op_board(self, x, y, code):
+        global op_buttons
+        if code == 0:
+            op_buttons[x][y].config(bg = "#777")
+        else:
+            op_buttons[x][y].config(bg = "#f00")
+        
+
     def fire(self, x_entry, y_entry):
-        x_cord = x_entry.get()
-        y_cord = y_entry.get()
-        print(x_cord + ", " + y_cord)
+        x = int(x_entry.get())
+        y = int(y_entry.get())
+
+        if x > 9 or x < 0 or y > 9 or y < 0:
+            print('Out of bounds shot')
+            return         
+
+        if not op_board[x][y] == -1:
+            print('Co-ordinate already guessed')
+            return
+        
+        print(str(x) + ", " + str(y))
+
+        #Change 'fleet' to check opponents board instead
+        return_code = fleet.check_pos((x,y))
+        op_board[x][y] = return_code
+        #Perform action based on return code
+        self.color_op_board(y,x,return_code)
+        
+        print(str(return_code))
 
     def __init__(self, master):
 
-        port = sys.argv[0]
-        #boardFile = sys.argv[1]
-        testboard = [['C','C','C','C','C','_','_','_','_','_'],
-                     ['B','B','B','B','_','_','_','_','_','_'],
-                     ['R','R','R','_','_','_','_','_','_','_'],
-                     ['S','S','S','_','_','_','_','_','_','_'],
-                     ['D','_','_','_','_','_','_','_','_','_'],
-                     ['D','_','_','_','_','_','_','_','_','_'],
-                     ['_','_','_','_','_','_','_','_','_','_'],
-                     ['_','_','_','_','_','_','_','_','_','_'],
-                     ['_','_','_','_','_','_','_','_','_','_'],
-                     ['_','_','_','_','_','_','_','_','_','_']]
+        sys.argv = [sys.argv[0], 5000, 'board.txt']
 
+        port = sys.argv[1]
+        board_file = sys.argv[2]
+        
+        global fleet
+        fleet = Fleet(board_file)
+        #fleet.print_fleet()
 
         frame = Frame(master)
         frame.pack()
@@ -43,20 +64,31 @@ class Battleship:
             subframe = Frame(player_grid)
             subframe.grid(row=y)
             for x in range(0, 10):
-                button_color = self.get_tile_color(testboard[y][x])
+                button_color = self.get_tile_color(fleet.board[y][x])
                 self.button = Button(subframe, height = 1, width = 2, bg=button_color, state=DISABLED)
                 self.button.grid(row=y, column=x)
 
         opponent_grid = Frame(frame)
         opponent_grid.grid(row=0, column=1, padx=25, pady=25)
+
+        global op_board
+        op_board = []
+        global op_buttons
+        op_buttons = []
         
         for y in range(0, 10):
             subframe = Frame(opponent_grid)
             subframe.grid(row=y)
+            board_row = []
+            op_button_row =[]
             for x in range(0, 10):
                 self.button = Button(subframe, width = 2, height = 1, bg="#fff", state=DISABLED)
                 self.button.grid(row=y, column=x)
-
+                board_row.append(-1)
+                op_button_row.append(self.button)
+            op_board.append(board_row)
+            op_buttons.append(op_button_row)
+            
         input_frame = Frame(frame)
         input_frame.grid(row = 1, column = 0, columnspan = 2)
         
