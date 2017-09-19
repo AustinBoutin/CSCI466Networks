@@ -1,5 +1,5 @@
 import os
-from Ship import Ship
+from ship import Ship
 
 class Fleet:
     def __init__(self, path):

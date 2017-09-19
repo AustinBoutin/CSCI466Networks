@@ -1,8 +1,11 @@
 import sys
+import socket
+from bottle import post, request, error, HTTPError
 from tkinter import *
-from Fleet import Fleet
+from fleet import Fleet
+from client import Client
 
-class Battleship:
+class Server:
 
     def get_tile_color(self, tile):
         return{
@@ -21,17 +24,25 @@ class Battleship:
             op_buttons[x][y].config(bg = "#f00")
         
 
-    def fire(self, x_entry, y_entry):
-        x = int(x_entry.get())
-        y = int(y_entry.get())
+    @post('/')
+    def handle_salvo():
+
+        try:
+            x = int(request.forms.get('x'))
+            y = int(request.forms.get('y'))
+
+        except TypeError:
+            print ('404')
+            return HTTPError(404, reason='Not Found.')
 
         if x > 9 or x < 0 or y > 9 or y < 0:
-            print('Out of bounds shot')
-            return         
+            print ('400')
+            return HTTPError(400, reason='Bad Request.')       
 
+        #If shot has already been guessed
         if not op_board[x][y] == -1:
-            print('Co-ordinate already guessed')
-            return
+            print ('410')
+            return HTTPError(410, reason='Gone.')
         
         print(str(x) + ", " + str(y))
 
@@ -43,6 +54,13 @@ class Battleship:
         
         print(str(return_code))
 
+        if str(return_code) in 'CBRSD':
+            return 'hit=1&sink={}'.format(return_code)
+        else:
+            return 'hit={}'.format(return_code)
+            
+            
+
     def __init__(self, master):
 
         sys.argv = [sys.argv[0], 5000, 'board.txt']
@@ -50,9 +68,30 @@ class Battleship:
         port = sys.argv[1]
         board_file = sys.argv[2]
         
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #server_address = ('localhost', port)
+        
+        #print >>sys.stderr, 'starting up on %s port %s' % server_address
+        sock.bind(('', port))
+
+        sock.listen(1)
+
+        
+        print(socket.gethostname() + ' ' + str(port))
+        #client = Client('localhost', port, 4, 3)
+
+        #Stuck Here
+        connection, addr = sock.accept()
+        data.conn.recv(1024)
+        
+        
+        print('There')
+        
+        
         global fleet
         fleet = Fleet(board_file)
-        #fleet.print_fleet()
+        fleet.print_fleet()
 
         frame = Frame(master)
         frame.pack()
@@ -109,7 +148,7 @@ class Battleship:
 
 root = Tk()
 
-app = Battleship(root)
+app = Server(root)
 
 root.mainloop()
 root.destroy
