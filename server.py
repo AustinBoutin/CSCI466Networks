@@ -63,7 +63,7 @@ class Server:
 
     def __init__(self, master):
 
-        sys.argv = [sys.argv[0], 5000, 'board.txt']
+        sys.argv = [sys.argv[0], 10000, 'board.txt']
 
         port = sys.argv[1]
         board_file = sys.argv[2]
@@ -73,7 +73,7 @@ class Server:
         #server_address = ('localhost', port)
         
         #print >>sys.stderr, 'starting up on %s port %s' % server_address
-        sock.bind(('', port))
+        sock.bind(('127.0.0.1', port))
 
         sock.listen(1)
 
@@ -82,8 +82,9 @@ class Server:
         #client = Client('localhost', port, 4, 3)
 
         #Stuck Here
-        connection, addr = sock.accept()
-        data.conn.recv(1024)
+        conn, addr = sock.accept()
+        data = conn.recv(1024)
+        print(data)
         
         
         print('There')
